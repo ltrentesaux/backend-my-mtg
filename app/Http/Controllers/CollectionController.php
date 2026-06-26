@@ -46,11 +46,44 @@ class CollectionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function destroy($userId, $cardId)
+    public function updateQuantity(Request $request, $userId, $cardId)
     {
+        $validated = $request->validate([
+            'change' => 'required|integer',
+            'variant' => 'nullable|string'
+        ]);
+
+        $variant = $validated['variant'] ?? 'nonfoil';
+        
+        $collectionCard = DB::table('collections')
+            ->where('user_id', $userId)
+            ->where('card_id', $cardId)
+            ->where('variant', $variant)
+            ->first();
+
+        if (!$collectionCard) {
+            return response()->json(['success' => false, 'message' => 'Card not found in collection'], 404);
+        }
+
+        $newQuantity = $collectionCard->quantity + $validated['change'];
+
+        if ($newQuantity <= 0) {
+            DB::table('collections')->where('id', $collectionCard->id)->delete();
+        } else {
+            DB::table('collections')->where('id', $collectionCard->id)->update(['quantity' => $newQuantity]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroy(Request $request, $userId, $cardId)
+    {
+        $variant = $request->query('variant', 'nonfoil');
+
         DB::table('collections')
             ->where('user_id', $userId)
             ->where('card_id', $cardId)
+            ->where('variant', $variant)
             ->delete();
 
         return response()->json(['success' => true]);

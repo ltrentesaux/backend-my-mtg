@@ -12,6 +12,7 @@ Route::get('/user', function (Request $request) {
 // Collection routes
 Route::get('/collections/{userId}', [CollectionController::class, 'index']);
 Route::post('/collections', [CollectionController::class, 'store']);
+Route::put('/collections/{userId}/cards/{cardId}', [CollectionController::class, 'updateQuantity']);
 Route::delete('/collections/{userId}/{cardId}', [CollectionController::class, 'destroy']);
 
 // Decks routes
