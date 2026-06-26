@@ -139,4 +139,49 @@ class DeckController extends Controller
         DB::table('decks')->where('id', $deckId)->delete();
         return response()->json(['success' => true]);
     }
+
+    public function updateName(Request $request, $deckId)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        DB::table('decks')->where('id', $deckId)->update(['name' => $validated['name']]);
+        return response()->json(['success' => true]);
+    }
+
+    public function duplicate(Request $request, $deckId)
+    {
+        $deck = DB::table('decks')->where('id', $deckId)->first();
+        if (!$deck) {
+            return response()->json(['success' => false, 'message' => 'Deck not found'], 404);
+        }
+
+        $newDeckId = DB::table('decks')->insertGetId([
+            'user_id' => $deck->user_id,
+            'name' => $deck->name . ' (Copie)',
+            'description' => $deck->description,
+            'deck_format_id' => $deck->deck_format_id,
+        ]);
+
+        $cards = DB::table('deck_cards')->where('deck_id', $deckId)->get();
+        $newCards = [];
+        foreach ($cards as $card) {
+            $newCards[] = [
+                'deck_id' => $newDeckId,
+                'card_id' => $card->card_id,
+                'lang' => $card->lang,
+                'variant' => $card->variant,
+                'quantity_total' => $card->quantity_total,
+                'quantity_owned' => $card->quantity_owned,
+                'is_commander' => $card->is_commander,
+            ];
+        }
+
+        if (count($newCards) > 0) {
+            DB::table('deck_cards')->insert($newCards);
+        }
+
+        return response()->json(['success' => true, 'deck_id' => $newDeckId]);
+    }
 }

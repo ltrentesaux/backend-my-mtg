@@ -18,6 +18,8 @@ Route::delete('/collections/{userId}/{cardId}', [CollectionController::class, 'd
 Route::get('/decks/{userId}', [DeckController::class, 'index']);
 Route::post('/decks', [DeckController::class, 'store']);
 Route::delete('/decks/{deckId}', [DeckController::class, 'destroy']);
+Route::put('/decks/{deckId}', [DeckController::class, 'updateName']);
+Route::post('/decks/{deckId}/duplicate', [DeckController::class, 'duplicate']);
 
 // Deck Cards routes
 Route::post('/decks/{deckId}/cards', [DeckController::class, 'addCard']);
